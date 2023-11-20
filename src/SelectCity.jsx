@@ -3,11 +3,23 @@ import getDay from "./utils/getDay";
 import formatForecastData from "./utils/formatForcastData";
 import StackedAreaChart from "./Graphs/StackedAreaChart";
 
+function createInitialWeather() {
+  const storedUserData = localStorage.getItem("userData");
+  if (storedUserData) {
+    return JSON.parse(storedUserData);
+  }
+  return [];
+}
+
 export default function SelectCity() {
-  const [weather, setWeather] = useState([]);
+  const [weather, setWeather] = useState(createInitialWeather);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    localStorage.setItem("userData", JSON.stringify(weather));
+  }, [weather]);
 
   function handleSearch(e) {
     setName(e.target.value);
