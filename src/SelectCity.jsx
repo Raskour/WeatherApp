@@ -2,14 +2,12 @@ import { useState, useEffect } from "react";
 import getDay from "./utils/getDay";
 import formatForecastData from "./utils/formatForcastData";
 import StackedAreaChart from "./Graphs/StackedAreaChart";
-import CloudIcon from "./Icons/Cloud";
-import SunIcon from "./Icons/Sun";
-import RainIcon from "./Icons/Rain";
 
 export default function SelectCity() {
   const [weather, setWeather] = useState([]);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   function handleSearch(e) {
     setName(e.target.value);
@@ -17,20 +15,32 @@ export default function SelectCity() {
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
-    const res = await fetch(
-      `https://api.weatherapi.com/v1/forecast.json?key=eaf41e8c9c9a44eea7c114007231011&q=${name}&days=5&aqi=no&alerts=no`
-    );
+    try {
+      const res = await fetch(
+        `https://api.weatherapi.com/v1/forecast.json?key=eaf41e8c9c9a44eea7c114007231011&q=${name}&days=5&aqi=no&alerts=no`
+      );
 
-    const data = await res.json();
+      const data = await res.json();
 
-    setWeather([data, ...weather]);
-    setLoading(false);
-    setName("");
+      if (!res.ok) {
+        throw new Error(data.error.message);
+      }
+
+      setWeather([data, ...weather]);
+
+      setName("");
+      setError(null);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <div>
       <h1>Weather</h1>
+      {error && <p>Error:{error}</p>}
       <form onSubmit={handleSubmit}>
         <label htmlFor="city">Search</label>
         <input
